@@ -78,24 +78,100 @@ class ThreeJSContainer {
     this.scene = new THREE.Scene();
 
     const loader = new GLTFLoader();
+
     loader.register((parser) => new VRMLoaderPlugin(parser));
     loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
 
-    loader.load("/models/avatar.vrm", async (gltf) => {
-      this.vrm = gltf.userData.vrm;
+    const vrmFileInput = document.getElementById(
+      "vrm-file"
+    ) as HTMLInputElement | null;
 
-      if (!this.vrm) {
-        console.error("VRMの読み込みに失敗しました");
+    const vrmStatus = document.getElementById(
+      "vrm-status"
+    );
+
+    vrmFileInput?.addEventListener("change", async () => {
+      const file = vrmFileInput.files?.[0];
+
+      if (!file) {
         return;
       }
 
-      this.scene.add(this.vrm.scene);
-      this.saveArmRestPose();
+      if (!file.name.toLowerCase().endsWith(".vrm")) {
+        if (vrmStatus) {
+          vrmStatus.textContent = "VRMファイルを選択してください";
+        }
+        return;
+      }
 
-      this.mixer = new THREE.AnimationMixer(this.vrm.scene);
-      await this.loadAnimation(loader, "/animation/VRMA_MotionPack/vrma/VRMA_02.vrma", "greeting");
-      await this.loadAnimation(loader, "/animation/VRMA_MotionPack/vrma/VRMA_01.vrma", "show body");
+      try {
+        if (vrmStatus) {
+          vrmStatus.textContent = "VRMモデルを読み込み中...";
+        }
 
+        // 以前のVRMが存在する場合は削除
+        if (this.vrm) {
+          this.scene.remove(this.vrm.scene);
+          this.vrm = null;
+        }
+
+        // 以前のアニメーションをリセット
+        this.actions = {};
+        this.currentAction = undefined;
+        this.mixer = undefined;
+
+        // ファイルをブラウザ上のURLに変換
+        const url = URL.createObjectURL(file);
+
+        try {
+          const gltf = await loader.loadAsync(url);
+
+          this.vrm = gltf.userData.vrm;
+
+          if (!this.vrm) {
+            throw new Error("VRMデータが見つかりません");
+          }
+
+          this.scene.add(this.vrm.scene);
+
+          // 初期姿勢を保存
+          this.saveArmRestPose();
+
+          // AnimationMixerを作成
+          this.mixer = new THREE.AnimationMixer(this.vrm.scene);
+
+          // VRMAアニメーションを読み込む
+          await this.loadAnimation(
+            loader,
+            "/animation/VRMA_MotionPack/vrma/VRMA_02.vrma",
+            "greeting"
+          );
+
+          await this.loadAnimation(
+            loader,
+            "/animation/VRMA_MotionPack/vrma/VRMA_01.vrma",
+            "show body"
+          );
+
+          if (vrmStatus) {
+            vrmStatus.textContent = `${file.name} を読み込みました`;
+          }
+
+          console.log("VRM読み込み成功:", file.name);
+
+        } finally {
+          // 作成した一時URLを解放
+          URL.revokeObjectURL(url);
+        }
+
+      } catch (error) {
+        console.error("VRMの読み込みに失敗しました:", error);
+
+        if (vrmStatus) {
+          vrmStatus.textContent =
+            "VRMの読み込みに失敗しました。コンソールを確認してください。";
+        }
+      }
     });
 
     const floor = new THREE.Mesh(
