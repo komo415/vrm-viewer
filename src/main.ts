@@ -681,6 +681,6 @@ window.addEventListener("DOMContentLoaded", init);
 function init() {
   let container = new ThreeJSContainer();
 
-  let viewport = container.createRendererDOM(1024, 768, new THREE.Vector3(0, 1, -1.5));
+  let viewport = container.createRendererDOM(1024, 576, new THREE.Vector3(0, 1, -1.5));
   document.body.appendChild(viewport);
 }
