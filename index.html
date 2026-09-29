@@ -6,6 +6,28 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>vrm-viewer</title>
+  <style>
+    #vrm-loader-ui {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+    }
+
+    #vrm-loader-ui label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    #vrm-status {
+      margin: 8px 0 0;
+      font-size: 14px;
+    }
+  </style>
 </head>
 
 <body>
@@ -14,6 +36,11 @@
   <div id="motion-capture-panel">
     <video id="webcam" autoplay muted playsinline></video>
     <p id="pose-status">カメラは停止中です</p>
+  </div>
+  <div id="vrm-loader-ui">
+    <label for="vrm-file">VRMモデルを選択</label>
+    <input type="file" id="vrm-file" accept=".vrm" />
+    <p id="vrm-status">VRMモデルを選択してください</p>
   </div>
 </body>
 
